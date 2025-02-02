@@ -1,0 +1,47 @@
+name: GitHub Snake Game
+
+on:
+  # Run every 6 hours instead of daily
+  schedule:
+    - cron: "0 */6 * * *"
+  # Allow manual triggering
+  workflow_dispatch:
+  # Trigger on push to main
+  push:
+    branches:
+      - main
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # ✅ Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # ✅ Step 2: Generate Snake Animations
+      - name: Generate GitHub Contributions Snake Animations
+        uses: Platane/snk@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            dist/github-snake.svg?color_snake=blue&color_dots=#ffcccc,#ff9999,#ff6666,#cc0000
+            dist/github-snake-dark.svg?palette=github-dark
+            dist/ocean.gif?color_snake=orange&color_dots=#b2fefa,#69c8ff,#407bff,#1b3bff,#0d1a7a
+            dist/rainbow.svg?color_snake=rainbow&color_dots=#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#4b0082,#8f00ff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ✅ Step 3: Deploy Generated Files to 'output' Branch
+      - name: Deploy to Output Branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: output
+          commit_message: "🚀 Update snake animation [skip ci]"
+
+      # ✅ Step 4: Clean Up Old Artifacts (Optional)
+      - name: Clean Up Old Files
+        run: rm -rf dist/*
